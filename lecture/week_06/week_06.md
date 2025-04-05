@@ -135,7 +135,7 @@ python ftp_attack.py -H 192.168.100.20 -U short_users.txt -P short_passwords.txt
 ```
 
 
-# 3. 개발
+# 3. 개발(시작)
 
 ## 개발 보안 코드
 

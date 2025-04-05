@@ -81,7 +81,7 @@ python ftp_attack.py -H 192.168.100.20 -U short_users.txt -P short_passwords.txt
 ![](attachments/Pasted%20image%2020250320222906.png)
 
 
-# 2. 설계
+# 2. 설계(시작)
 
 ## 주요 취약점
 
