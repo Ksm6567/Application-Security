@@ -1,4 +1,3 @@
-# calc.py
 class Calculator:
     """기본적인 수학 연산을 수행하는 계산기 클래스"""
     

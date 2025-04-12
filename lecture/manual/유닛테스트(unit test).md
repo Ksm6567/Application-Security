@@ -24,7 +24,6 @@
 ```python
 import unittest
 
-
 # TestCase를 작성
 classCustomTests(unittest.TestCase):
 	def test_runs(self):
@@ -214,7 +213,7 @@ if __name__ == "__main__":
     main()
 ```
 
-### test_calc
+### test_calc.py
 
 ```python
 import unittest
