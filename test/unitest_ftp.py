@@ -4,16 +4,14 @@ import unittest
 
 import config
 
-from test.ftp.testMain import testMain
 from test.ftp.testFTPCommandClient import TestFTPCommandClient
-
-from test.ftp.testSecureMain import testSecureMain
+from test.ftp.testMain import testMain
+from test.ftp.testSecureMain import TestSecureMain
 
 def test_ftp():
     test_main = unittest.TestLoader().loadTestsFromTestCase(testMain)
     test_ftp_command_client = unittest.TestLoader().loadTestsFromTestCase(TestFTPCommandClient)
-    
-    test_secure_main = unittest.TestLoader().loadTestsFromTestCase(testSecureMain)
+    test_secure_main = unittest.TestLoader().loadTestsFromTestCase(TestSecureMain)
 
     allTests = unittest.TestSuite()
     
