@@ -9,6 +9,9 @@ import threading
 from queue import Queue
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+# 현재 디렉토리의 절대 경로 구하기
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
 class FTPBruteforcer:
     def __init__(self, host: str):
         self.host = host
@@ -107,10 +110,14 @@ class FTPBruteforcer:
 def load_wordlist(filename: str) -> List[str]:
     """워드리스트 파일 로드"""
     try:
-        with open(filename, 'r', encoding='utf-8') as f:
+        # 상대 경로를 절대 경로로 변환 (중복 경로 제거)
+        abs_path = os.path.normpath(os.path.join(current_dir, filename))
+        print(f"로드 시도 중인 파일 경로: {abs_path}")
+        with open(abs_path, 'r', encoding='utf-8') as f:
             return [line.strip() for line in f if line.strip()]
     except Exception as e:
         print(f"워드리스트 파일 로드 실패: {str(e)}")
+        print(f"시도한 파일 경로: {abs_path}")
         sys.exit(1)
 
 def parse_arguments():
@@ -122,31 +129,28 @@ def parse_arguments():
     parser.add_argument('-u', '--user', help='단일 사용자명')
     parser.add_argument('-p', '--password', help='단일 비밀번호')
     parser.add_argument('-t', '--threads', type=int, default=10, help='최대 스레드 수')
-    # -d 인자 추가 (하지만 사용하지 않음)
     parser.add_argument('-d', '--delay', type=float, help='지연 시간 (무시됨)')
     
     args = parser.parse_args()
-    
-    # 현재 스크립트의 절대 경로를 기준으로 워드리스트 파일 경로 설정
-    base_path = os.path.dirname(os.path.abspath(__file__))
-    wordlist_path = os.path.join(base_path)
     
     # 사용자명과 비밀번호 준비
     if args.user:
         usernames = [args.user]
     elif args.userlist:
-        userlist_file = os.path.join(wordlist_path, args.userlist)
-        print(f"사용자 리스트 파일 경로: {userlist_file}")
-        usernames = load_wordlist(userlist_file)
+        # 상대 경로에서 attacks/ 접두사 제거 (이미 attacks 디렉토리에 있으므로)
+        userlist_path = args.userlist.replace('./attacks/', '').replace('attacks/', '')
+        print(f"사용자 리스트 파일 경로: {userlist_path}")
+        usernames = load_wordlist(userlist_path)
     else:
         usernames = ['cju']
         
     if args.password:
         passwords = [args.password]
     elif args.passlist:
-        passlist_file = os.path.join(wordlist_path, args.passlist)
-        print(f"비밀번호 리스트 파일 경로: {passlist_file}")
-        passwords = load_wordlist(passlist_file)
+        # 상대 경로에서 attacks/ 접두사 제거 (이미 attacks 디렉토리에 있으므로)
+        passlist_path = args.passlist.replace('./attacks/', '').replace('attacks/', '')
+        print(f"비밀번호 리스트 파일 경로: {passlist_path}")
+        passwords = load_wordlist(passlist_path)
     else:
         passwords = ['security']
     
