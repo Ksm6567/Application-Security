@@ -1,10 +1,14 @@
 import sys
-import argparse
 import os
+import argparse
 import time
 from typing import List, Dict, Tuple
 
-from insecure.FTPClient import FTPClient
+# 프로젝트 루트 디렉토리를 Python 경로에 추가
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(project_root)
+
+from src.ftp.client.FTPClient import FTPClient
 
 # 로그인 시도 추적을 위한 글로벌 변수
 login_attempts: Dict[str, List[float]] = {}

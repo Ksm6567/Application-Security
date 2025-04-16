@@ -1,9 +1,13 @@
 import sys
-import argparse
 import os
+import argparse
 from typing import List
 
-from insecure.FTPClient import FTPClient
+# 프로젝트 루트 디렉토리를 Python 경로에 추가
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(project_root)
+
+from src.ftp.client.FTPClient import FTPClient
 
 def print_menu():
     """메인 메뉴 출력"""
@@ -58,7 +62,7 @@ def main():
 
             elif choice == "2":
                 # 지정된 파일 업로드
-                local_path = "D:\\Git\\Application-Security\\ftp\\insecure\\application_security.txt"
+                local_path = "D:\\Git\\Application-Security\\src\\ftp\\insecure\\application_security.txt"
                 if not os.path.exists(local_path):
                     print(f"\n{local_path} 파일이 존재하지 않습니다.")
                     continue

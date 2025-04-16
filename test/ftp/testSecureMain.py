@@ -19,10 +19,11 @@ from unittest.mock import patch, MagicMock
 import sys
 import os
 
-# secure_main 모듈을 직접 가져오기 위한 경로 설정
-# 현재 파일의 상위 디렉토리를 Python 경로에 추가하여 모듈 임포트 가능하게 함
-sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-import ftp.secure_main  # 전체 모듈을 임포트
+# 프로젝트 루트 디렉토리를 Python 경로에 추가
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(project_root)
+
+import src.ftp.secure_main  # 전체 모듈을 임포트
 
 class TestSecureMain(unittest.TestCase):
     """FTP 서버의 보안 기능을 테스트하는 클래스"""
@@ -37,7 +38,7 @@ class TestSecureMain(unittest.TestCase):
         2. 테스트에 사용할 IP 주소 설정
         """
         # 전역 모듈 변수 직접 초기화
-        ftp.secure_main.login_attempts = {}
+        src.ftp.secure_main.login_attempts = {}
         self.test_ip = '192.168.100.20'  # 모든 테스트에서 고정 IP 사용
     
     def test_first_login_attempt(self):
@@ -51,13 +52,13 @@ class TestSecureMain(unittest.TestCase):
         4. 시도 횟수가 1이어야 함
         """
         # 로그인 시도
-        allowed, wait_time = ftp.secure_main.check_brute_force(self.test_ip)
+        allowed, wait_time = src.ftp.secure_main.check_brute_force(self.test_ip)
         
         # 테스트 검증
         self.assertTrue(allowed)  # 로그인이 허용되어야 함
         self.assertEqual(wait_time, 0)  # 대기 시간이 0이어야 함
-        self.assertIn(self.test_ip, ftp.secure_main.login_attempts)  # IP가 기록되어야 함
-        self.assertEqual(len(ftp.secure_main.login_attempts[self.test_ip]), 1)  # 시도 횟수가 1이어야 함
+        self.assertIn(self.test_ip, src.ftp.secure_main.login_attempts)  # IP가 기록되어야 함
+        self.assertEqual(len(src.ftp.secure_main.login_attempts[self.test_ip]), 1)  # 시도 횟수가 1이어야 함
     
     def test_consecutive_login_failures(self):
         """
@@ -69,18 +70,18 @@ class TestSecureMain(unittest.TestCase):
         3. 차단 시 대기 시간이 DELAY_FACTOR와 같아야 함
         """
         # MAX_ATTEMPTS 번까지 시도
-        for i in range(1, ftp.secure_main.MAX_ATTEMPTS + 1):
-            allowed, wait_time = ftp.secure_main.check_brute_force(self.test_ip)
+        for i in range(1, src.ftp.secure_main.MAX_ATTEMPTS + 1):
+            allowed, wait_time = src.ftp.secure_main.check_brute_force(self.test_ip)
             self.assertTrue(allowed)  # 허용되어야 함
             self.assertEqual(wait_time, 0)  # 대기 시간이 0이어야 함
-            self.assertIn(self.test_ip, ftp.secure_main.login_attempts)  # IP가 기록되어야 함
-            self.assertEqual(len(ftp.secure_main.login_attempts[self.test_ip]), i)  # 시도 횟수 확인
+            self.assertIn(self.test_ip, src.ftp.secure_main.login_attempts)  # IP가 기록되어야 함
+            self.assertEqual(len(src.ftp.secure_main.login_attempts[self.test_ip]), i)  # 시도 횟수 확인
         
         # MAX_ATTEMPTS 초과 시도
-        allowed, wait_time = ftp.secure_main.check_brute_force(self.test_ip)
+        allowed, wait_time = src.ftp.secure_main.check_brute_force(self.test_ip)
         self.assertFalse(allowed)  # 차단되어야 함
         self.assertGreater(wait_time, 0)  # 대기 시간이 0보다 커야 함
-        self.assertAlmostEqual(wait_time, ftp.secure_main.DELAY_FACTOR, delta=0.1)  # 대기 시간이 DELAY_FACTOR와 같아야 함
+        self.assertAlmostEqual(wait_time, src.ftp.secure_main.DELAY_FACTOR, delta=0.1)  # 대기 시간이 DELAY_FACTOR와 같아야 함
     
     @patch('time.time')
     def test_login_failures_with_time_progression(self, mock_time):
@@ -99,30 +100,30 @@ class TestSecureMain(unittest.TestCase):
         mock_time.return_value = current_time
         
         # MAX_ATTEMPTS 번 시도
-        for _ in range(ftp.secure_main.MAX_ATTEMPTS):
-            ftp.secure_main.check_brute_force(self.test_ip)
+        for _ in range(src.ftp.secure_main.MAX_ATTEMPTS):
+            src.ftp.secure_main.check_brute_force(self.test_ip)
         
         # MAX_ATTEMPTS 초과 첫 번째 시도
-        allowed, wait_time1 = ftp.secure_main.check_brute_force(self.test_ip)
+        allowed, wait_time1 = src.ftp.secure_main.check_brute_force(self.test_ip)
         self.assertFalse(allowed)  # 차단되어야 함
-        self.assertAlmostEqual(wait_time1, ftp.secure_main.DELAY_FACTOR, delta=0.1)  # 대기 시간 확인
+        self.assertAlmostEqual(wait_time1, src.ftp.secure_main.DELAY_FACTOR, delta=0.1)  # 대기 시간 확인
         
         # 대기 시간의 절반만 경과
         mock_time.return_value = current_time + (wait_time1 / 2)
         
         # 다시 시도 - 여전히 차단되어야 함
-        allowed, wait_time2 = ftp.secure_main.check_brute_force(self.test_ip)
+        allowed, wait_time2 = src.ftp.secure_main.check_brute_force(self.test_ip)
         self.assertFalse(allowed)  # 차단 상태 유지
         
         # 두 번째 초과 시도에 대한 대기 시간 검사
-        expected_wait_time = ftp.secure_main.DELAY_FACTOR * 2  # 대기 시간이 2배가 되어야 함
+        expected_wait_time = src.ftp.secure_main.DELAY_FACTOR * 2  # 대기 시간이 2배가 되어야 함
         self.assertAlmostEqual(wait_time2, expected_wait_time, delta=0.1)
         
         # 충분한 시간 경과 시뮬레이션 (LOCKOUT_TIME + 10초)
-        mock_time.return_value = current_time + ftp.secure_main.LOCKOUT_TIME + 10
+        mock_time.return_value = current_time + src.ftp.secure_main.LOCKOUT_TIME + 10
         
         # 다시 시도 - 이제 허용되어야 함
-        allowed, _ = ftp.secure_main.check_brute_force(self.test_ip)
+        allowed, _ = src.ftp.secure_main.check_brute_force(self.test_ip)
         self.assertTrue(allowed)  # 허용되어야 함
     
     @patch('time.time')
@@ -142,17 +143,17 @@ class TestSecureMain(unittest.TestCase):
         mock_time.return_value = current_time
         
         # MAX_ATTEMPTS 번 시도
-        for _ in range(ftp.secure_main.MAX_ATTEMPTS):
-            ftp.secure_main.check_brute_force(self.test_ip)
+        for _ in range(src.ftp.secure_main.MAX_ATTEMPTS):
+            src.ftp.secure_main.check_brute_force(self.test_ip)
         
         # LOCKOUT_TIME 이상 시간 경과 시뮬레이션
-        mock_time.return_value = current_time + ftp.secure_main.LOCKOUT_TIME + 10
+        mock_time.return_value = current_time + src.ftp.secure_main.LOCKOUT_TIME + 10
         
         # 다시 시도 - 카운터가 리셋되어 새로운 첫 시도로 간주되어야 함
-        allowed, wait_time = ftp.secure_main.check_brute_force(self.test_ip)
+        allowed, wait_time = src.ftp.secure_main.check_brute_force(self.test_ip)
         self.assertTrue(allowed)  # 허용되어야 함
         self.assertEqual(wait_time, 0)  # 대기 시간이 0이어야 함
-        self.assertEqual(len(ftp.secure_main.login_attempts[self.test_ip]), 1)  # 시도 횟수가 1이어야 함
+        self.assertEqual(len(src.ftp.secure_main.login_attempts[self.test_ip]), 1)  # 시도 횟수가 1이어야 함
 
 if __name__ == '__main__':
     unittest.main()
